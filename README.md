@@ -10,13 +10,13 @@ You can find the github repository for this project here: <a href="https://githu
 
 ## Create Game Flow (client -> server)
 
-<img src="./project/create-flow.png" alt="Game creation flow from client to server" width="250" />
+<img src="./project/create-flow.png" alt="Game creation flow from client to server" width="700" />
 
 ---
 
 ## Submit Word Flow (client -> server)
 
-<img src="./project/game-flow.png.png" alt="Game creation flow from client to server" width="250" />
+<img src="./project/game-flow.png" alt="Game creation flow from client to server" width="700" />
 
 ---
 
