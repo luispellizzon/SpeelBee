@@ -1,0 +1,35 @@
+syntax = "proto3";
+package pangram.v1;
+option go_package = "github.com/luispellizzon/pangram/api/pangram/v1;gamepb";
+
+service GameManager {
+  rpc CreateGame(CreateGameRequest) returns (CreateGameResponse);
+  rpc SubmitWord(SubmitWordRequest) returns (SubmitWordResponse);
+}
+
+message CreateGameRequest { string kind = 1; } // "pangram"
+message CreateGameResponse {
+  string id = 1;
+  string name = 2;
+  repeated string letters = 3;
+  string center = 4;
+}
+
+message SubmitWordRequest { string id = 1; string word = 2; }
+
+enum WordResult {
+  ERROR = 0;
+  OK = 1;
+  TOO_SHORT = 2;
+  INVALID_LETTER = 3;
+  MISSING_CENTER = 4;
+  NOT_IN_DICT = 5;
+  DUPLICATE = 6;
+}
+message SubmitWordResponse {
+  bool valid = 1;
+  WordResult reason = 2;
+  int32 points = 3;
+  int32 total = 4;
+  bool pangram = 5;
+}
