@@ -124,7 +124,7 @@ This document explains **which design patterns are used**, **where they appear i
 
 ---
 
-## 8) Lightweight Decorator wrapper — `games.pangramSingle`
+## 8) SinglePlayer Decorator wrapper — `games.pangramSingle`
 
 **Where**
 
@@ -148,6 +148,5 @@ This document explains **which design patterns are used**, **where they appear i
   - Tune word submission performance by inserting or removing the proxy.
   - Change game points by switching scoring strategies.
   - Keep everyone consistent with a single daily board.
-  -
 
 ---
