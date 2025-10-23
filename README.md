@@ -90,25 +90,6 @@ This document explains **which design patterns are used**, **where they appear i
 
 ---
 
-## 5) Singleton — `pangram.Board()`
-
-**Where**
-
-- `internal/pangram/board.go`
-  - Global `GameBoard` with `sync.Once` and `Board() (GameBoard, error)`
-  - `InitSource(s Source)` sets the **single** source of truth for today’s board
-- `internal/pangram/provider.go` → `Provider.Board()` delegates to the singleton
-
-**What / Why**
-
-- The game board for “today” is **created once** and shared globally for all games created. When the user join the server and create a new game, this game will fetch information from the board.
-- `sync.Once` ensures **exactly-one** initialization.
-- Benefits:
-  - **Consistency**: all sessions see the same board for the day.
-  - **Safety**: thread-safe lazy initialization; avoids races.
-
----
-
 ## 6) Singleton — `mgr (Manager)`
 
 **Where**
