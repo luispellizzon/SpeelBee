@@ -32,19 +32,25 @@ func main() {
 			// prompt for mode singleplayer vs multiplayer
 			*gameMode = getMode()
 		}
+
+		// check if mode chosen is valid
 		if !isValidMode(*gameMode) {
 			fmt.Printf("Invalid mode: %q. Use 'singleplayer' or 'multiplayer'.\n", *gameMode)
 			os.Exit(2)
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
+
+		// Create new game
 		response, err := client.CreateGame(ctx, &gamepb.CreateGameRequest{Kind: *gameMode})
 		if err != nil { panic(err) }
+
+		// Get new game id and game info about the pangram
 		id = response.GetId()
 		fmt.Printf("Game ID: %s %s \nletters: %s \ncenter: %s\n",
 			response.GetId(), response.GetName(), strings.Join(response.GetLetters(), " "), response.GetCenter())
 	} else {
-		// rejoin previous game
+		// rejoin previous game using game id
 		id = *gameID
 		fmt.Printf("Joining existing game -> %s.\n", id)
 	}
@@ -61,6 +67,8 @@ func main() {
 		if w == "/quit" { break }
 
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+
+		// Submit word to game by id to be checked on the server
 		resp, err := client.SubmitWord(ctx, &gamepb.SubmitWordRequest{Id: id, Word: w})
 		cancel()
 		if err != nil {
@@ -68,9 +76,13 @@ func main() {
 			continue
 		}
 
+		// Check server response
+		// Check if word is valid
 		if resp.GetValid() {
+			// Check if the word is the pangram
 			if resp.GetPangram(){
 				fmt.Printf("IS PANGRAM: +%d \nTOTAL POINTS: %d\n",
+				// Show points
 				resp.GetPoints(), resp.GetTotal())
 			} else {
 				fmt.Printf("VALID: +%d \nTOTAL POINTS: %d\n",

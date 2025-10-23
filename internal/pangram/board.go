@@ -10,12 +10,16 @@ import (
 	"time"
 )
 
+// GameBoard singleton that will serve as a backbone for creation of new games.
+// I wanted to make my game the same as Wordle, where everyone around the word gets the same information so friend can play as a singleplayer but challenging each other.
+// So here, every have will have the same pangram (which is chosen randomly), letters and center letter. 
 type GameBoard struct {
 	Letters []rune
 	Center rune
 	Word string
 }
 
+// Source interface is where I want a loader to create the GameBoard  singleton
 type Source interface { TodaysPangram() (GameBoard, error) }
 
 func LoadPangramsJSON(path string) ([]string, error) {
@@ -46,6 +50,7 @@ func LettersFromWord(p string) ([]rune, error) {
 	return letters, nil
 }
 
+// Todays Board creator
 type CurrentTodaysPangram struct { Words []string }
 
 func (s CurrentTodaysPangram) TodaysPangram() (GameBoard, error) {
