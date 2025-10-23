@@ -19,13 +19,16 @@ go run ./cmd/server/main.go
 From the root folder:
 
 ```bash
-go run ./cmd/client/main.go
+go run ./cmd/cli/main.go
 ```
 
-Select the game mode (singleplayer for now). This will generate a new game with a unique game ID, so if you want to quit the game and rejoin the same game, you can run the following `--game_id` flag:
+Select the game mode (singleplayer for now). This will generate a new game with a unique game ID.
+To quit the game, write: `/quit`
+
+If you want rejoin a previous game that was created, make sure you remember the ID of the game and run the following `--game_id` flag:
 
 ```bash
-go run ./cmd/client/main.go --game_id <GAME_ID>
+go run ./cmd/cli/main.go --game_id <GAME_ID>
 ```
 
 # GitHub repository
