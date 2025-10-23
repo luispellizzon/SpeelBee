@@ -4,6 +4,30 @@ This document explains **which design patterns are used**, **where they appear i
 
 ---
 
+# To Run The Game
+
+## First, run the server
+
+From the root folder:
+
+```bash
+go run ./cmd/server/main.go
+```
+
+## Second, run the client (or multiple clients)
+
+From the root folder:
+
+```bash
+go run ./cmd/client/main.go
+```
+
+Select the game mode (singleplayer for now). This will generate a new game with a unique game ID, so if you want to quit the game and rejoin the same game, you can run the following `--game_id` flag:
+
+```bash
+go run ./cmd/client/main.go --game_id <GAME_ID>
+```
+
 # GitHub repository
 
 You can find the github repository for this project here: <a href="https://github.com/luispellizzon/SpeelBee">Click Here</a>
