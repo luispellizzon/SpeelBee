@@ -50,9 +50,7 @@ This document explains **which design patterns are used**, **where they appear i
 - The game delegates **how points are calculated** to a pluggable `Scorer` strategy.
 - `BasicScorer` encodes the baseline rule; `BonusScorer` **decorates** another scorer and adds pangram bonuses.
 - Benefits:
-  - **Open/Closed Principle**: add new scoring schemes without modifying the game.
-  - **Testability**: inject a deterministic scorer in tests.
-  - **Composability**: chain behaviors (e.g., bonus-on-top-of-basic).
+  - **Open/Closed Principle**: add new scoring schemes without modifying the game, extending for different type of bonuses.
 
 ---
 
@@ -65,11 +63,11 @@ This document explains **which design patterns are used**, **where they appear i
 **What / Why**
 
 - Centralizes **how game instances are built** (wiring board provider, dictionary, and scorer).
-- The caller asks for `New("singleplayer")`; the factory assembles the right combination (`NewPangramSingle(...)`).
+- The caller asks for `New("singleplayer")`; the factory code assembles the right kind of game (`NewPangramSingle(...)`).
 - Benefits:
   - **Consistent construction** of complex objects.
   - One place to control dependencies (e.g., swap a scorer or repository for all new games).
-  - **Extensibility**: add `"multiplayer"` later without changing callers, or any other type of game.
+  - **Extensibility**: I can add `"multiplayer"` later without changing callers.
 
 ---
 
@@ -84,16 +82,68 @@ This document explains **which design patterns are used**, **where they appear i
 
 **What / Why**
 
-- The game board for “today” is **created once** and shared globally.
-- `sync.Once` ensures **exactly-one** initialization even under concurrency.
+- The game board for “today” is **created once** and shared globally for all games created. When the user join the server and create a new game, this game will fetch information from the board.
+- `sync.Once` ensures **exactly-one** initialization.
 - Benefits:
   - **Consistency**: all sessions see the same board for the day.
   - **Safety**: thread-safe lazy initialization; avoids races.
-  - **Control**: source can be injected for tests or different environments.
 
 ---
 
-## (Bonus) Lightweight Decorator — `games.pangramSingle`
+## 5) Singleton — `pangram.Board()`
+
+**Where**
+
+- `internal/pangram/board.go`
+  - Global `GameBoard` with `sync.Once` and `Board() (GameBoard, error)`
+  - `InitSource(s Source)` sets the **single** source of truth for today’s board
+- `internal/pangram/provider.go` → `Provider.Board()` delegates to the singleton
+
+**What / Why**
+
+- The game board for “today” is **created once** and shared globally for all games created. When the user join the server and create a new game, this game will fetch information from the board.
+- `sync.Once` ensures **exactly-one** initialization.
+- Benefits:
+  - **Consistency**: all sessions see the same board for the day.
+  - **Safety**: thread-safe lazy initialization; avoids races.
+
+---
+
+## 6) Singleton — `mgr (Manager)`
+
+**Where**
+
+- `internal/manager/manager.go`
+  - Global `Manager` with `sync.Once`
+  - Manager is a singleton that acts as a proxy to create new games and save each game in a map so users can also rejoin their game with their game_id using manager's `Get(id string)`.
+
+**What / Why**
+
+- The manager is global to the server and is responsible to manage new games and old games created. Requests passes through the manager class to either create a new game, or to search a game that was already created.
+- `sync.Once` ensures **exactly-one** initialization.
+- Benefits:
+  - **Consistency**: The server sees only one manager that manages all games from the server.
+
+---
+
+## 7) Singleton — `logger Logger`
+
+**Where**
+
+- `internal/logger/logger.go`
+  - Global `Logger` with `sync.Once`
+  - Logger is a singleton that logs information about the server. Only one instance is created and can be used across the codebase to log logs with different types: INFO/ERROR
+
+**What / Why**
+
+- The logger is global to the server and is responsible to log logs across the project.
+- `sync.Once` ensures **exactly-one** initialization.
+- Benefits:
+  - **Consistency**: The server sees only one logger instance, and its purpose is to log different types of logs according to their type (INFO/ERROR). It is extend to accept any type of interface, but mainly Errors.
+
+---
+
+## 8) Lightweight Decorator wrapper — `games.pangramSingle`
 
 **Where**
 
@@ -103,23 +153,20 @@ This document explains **which design patterns are used**, **where they appear i
 
 - Wraps a core `Game` and **adjusts behavior** (e.g., alters `Name()` to tag “SINGLE PLAYER”, delegates other calls).
 - Not requested in the prompt, but worth noting as a clean wrapper that extends behavior without modifying the original game.
+- The wrapper can implement others interface to meet requirements for the type of the game. For example, for future multiplayer game, I can create a pangramMultiplayer wrapper and integrate a interface called WithPlayers to gather players on the same game session.
+- Benefits:
+  - **Extensibility**: each type of game can have added interfaces specific to their purpose.
 
 ---
 
-## How They Work Together
+## How The Game is Built
 
 - **Factory** builds games using a **Board** from the **Singleton**, a dictionary via the **Adapter** (optionally behind the **Proxy**), and a scoring **Strategy**.
-- This yields a system that is **modular, testable, and easy to evolve**:
+- This yields a system that is \*_modular_:
   - Swap the dictionary backend by replacing the adapter target.
-  - Tune performance by inserting or removing the proxy.
-  - Change game feel by switching scoring strategies.
+  - Tune word submission performance by inserting or removing the proxy.
+  - Change game points by switching scoring strategies.
   - Keep everyone consistent with a single daily board.
+  -
 
 ---
-
-## Tradeoffs & Notes
-
-- **Singletons** can hinder parallel experiments if you want different boards simultaneously; consider scoping via contexts in the future.
-- **Factory** `switch kind` is simple; if kinds multiply, consider a registration map to avoid a long switch.
-- **Proxy** is FIFO-eviction; for hot-word workloads, an LRU might improve hit rate.
-- **Adapter** is currently file-based; abstract I/O (e.g., interfaces for readers) can ease migration to remote stores.
